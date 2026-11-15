@@ -62,6 +62,17 @@ end
 
 -- ── Channels ────────────────────────────────────────────────────────────────
 
+---What the checkout has installed, in the channel's terms: the nearest tag
+---for stable, the HEAD commit for unstable. Local git only.
+---@param cfg Beacon.Config
+---@return string
+function M.installed(cfg)
+  if cfg.channel == "unstable" then
+    return git(cfg, "rev-parse", "HEAD")
+  end
+  return git(cfg, "describe", "--tags", "--abbrev=0", "HEAD")
+end
+
 ---Report when the latest published release is newer than the nearest local tag.
 ---@param cfg Beacon.Config
 ---@return Beacon.Notice|nil

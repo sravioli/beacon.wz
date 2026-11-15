@@ -16,10 +16,10 @@ describe("beacon", function()
   ---Simulate a config reload: fresh modules, same GLOBAL.
   local function reload()
     local global = wezterm.GLOBAL
-    local timers = wezterm._timers
+    local timers, responder = wezterm._timers, wezterm._respond
     wezterm._reset()
     wezterm.GLOBAL = global
-    wezterm._timers = timers
+    wezterm._timers, wezterm._respond = timers, responder
     beacon = require "beacon.api"
     assert.is_true(beacon.setup(options))
   end
@@ -62,7 +62,9 @@ describe("beacon", function()
       return true, remote_tip .. "\trefs/heads/" .. args[#args]:sub(12) .. "\n", ""
     end
     assert.equals(beacon.config().dir, args[3])
-    if sub == "describe" then
+    if sub == "rev-parse" then
+      return true, string.rep("a", 40) .. "\n", ""
+    elseif sub == "describe" then
       return true, installed_tag .. "\n", ""
     elseif sub == "branch" then
       return true, branch .. "\n", ""
@@ -172,8 +174,12 @@ describe("beacon", function()
       reload()
       wezterm._respond = respond
       status()
+      status()
+      assert.equals(1, #wezterm._timers) -- one check of the recorded update
+      wezterm._fire()
+      assert.is_nil(find_command(is_curl))
+      status()
       assert.same({}, wezterm._timers)
-      assert.same({}, wezterm._commands)
     end)
 
     it("honours interval_hours", function()
@@ -204,9 +210,16 @@ describe("beacon", function()
       status()
       assert.equals(2, #wezterm._timers)
       wezterm._fire()
-      local count = #wezterm._commands
+      local curls = 0
+      for _, args in ipairs(wezterm._commands) do
+        curls = curls + (is_curl(args) and 1 or 0)
+      end
       wezterm._fire()
-      assert.equals(count, #wezterm._commands)
+      local after = 0
+      for _, args in ipairs(wezterm._commands) do
+        after = after + (is_curl(args) and 1 or 0)
+      end
+      assert.equals(curls, after)
       assert.equals(1, #notices)
     end)
 
@@ -297,6 +310,24 @@ describe("beacon", function()
       wezterm.GLOBAL[state_key()].next_check = 0
       check()
       assert.same({}, beacon.available())
+    end)
+
+    it("drops a recorded update after the checkout is updated", function()
+      check()
+      assert.equals(1, #beacon.available())
+      installed_tag, release.tag_name = "6.4.0", "6.4.0"
+      reload()
+      check() -- verifies against the checkout, then checks again
+      assert.same({}, beacon.available())
+    end)
+
+    it("keeps a recorded update across reloads while still installed", function()
+      check()
+      reload()
+      check()
+      assert.equals(1, #beacon.available())
+      -- only the local describe ran: no network request during the cooldown
+      assert.is_nil(find_command(is_curl))
     end)
 
     it("does not repeat a notification for the same release", function()

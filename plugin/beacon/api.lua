@@ -14,6 +14,7 @@ local M = {}
 ---@class Beacon.Watch
 ---@field cfg Beacon.Config
 ---@field scheduled boolean
+---@field verified? boolean The recorded update was checked against the checkout this load.
 
 local watches = {} ---@type Beacon.Watch[]
 local registered = false
@@ -55,6 +56,7 @@ local function run_check(cfg, window, force)
         url = notice.url,
         version = notice.version,
         name = cfg.name,
+        installed = channels.installed(cfg),
       }
     or nil
   -- `notify = false` watches only feed `available()`; check_now still toasts.
@@ -66,18 +68,41 @@ local function run_check(cfg, window, force)
   return notice
 end
 
+---Drop a recorded update once the checkout no longer has the version it was
+---found against (e.g. after `wezterm.plugin.update_all()`), and check again.
+---Local git only; runs once per config load.
+---@param watch Beacon.Watch
+local function verify(watch)
+  watch.verified = true
+  local cfg = watch.cfg
+  local state = load_state(cfg)
+  if not state.available then
+    return
+  end
+  local ok, installed = pcall(channels.installed, cfg)
+  if ok and installed ~= state.available.installed then
+    state.available, state.next_check = nil, 0
+    save_state(cfg, state)
+  end
+end
+
 ---@param watch Beacon.Watch
 ---@param window table
 local function schedule(watch, window)
   local cfg = watch.cfg
-  if watch.scheduled or os.time() < (load_state(cfg).next_check or 0) then
+  local state = load_state(cfg)
+  local stale = not watch.verified and state.available ~= nil
+  if watch.scheduled or (not stale and os.time() < (state.next_check or 0)) then
     return
   end
   watch.scheduled = true
   -- Only a live window event can schedule work; setup never does I/O.
   wezterm.time.call_after(cfg.delay_seconds, function()
     watch.scheduled = false
-    local state = load_state(cfg)
+    if not watch.verified then
+      verify(watch)
+    end
+    state = load_state(cfg)
     if os.time() < (state.next_check or 0) then
       return
     end
