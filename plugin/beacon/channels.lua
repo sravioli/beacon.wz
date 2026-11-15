@@ -11,6 +11,8 @@ local wezterm = require "wezterm"
 ---@field title string
 ---@field message string
 ---@field url string
+---@field version? string Release tag, for release notices.
+---@field name? string The watch's `name`, on notices returned by `available()`.
 
 local M = {}
 
@@ -101,6 +103,7 @@ function M.stable(cfg)
     title = cfg.name .. " release",
     message = ("Version %s is available (installed: %s)."):format(tag, installed_tag),
     url = url,
+    version = tag,
   }
 end
 

@@ -15,6 +15,7 @@ local wezterm = require "wezterm"
 ---@field delay_seconds? number Seconds to wait after the first window event. Default 5.
 ---@field name? string Label used in notification titles. Defaults to `repository`.
 ---@field timeout_ms? integer Notification display time. Default 8000.
+---@field notify? boolean Set to `false` to skip toasts and only record updates for `available()`. Default true.
 ---@field validate? boolean Set to `false` to skip validation and never load warden. Default true.
 
 ---@class Beacon.Config: Beacon.Options
@@ -24,6 +25,7 @@ local wezterm = require "wezterm"
 ---@field delay_seconds number
 ---@field name string
 ---@field timeout_ms integer
+---@field notify boolean
 
 local M = {}
 
@@ -44,6 +46,7 @@ local function schema()
     delay_seconds = w.number():min(0):optional(),
     name = text(),
     timeout_ms = w.number():min(0):optional(),
+    notify = w.boolean():optional(),
     validate = w.boolean():optional(),
   }):unknown "warn"
 end
@@ -74,6 +77,7 @@ function M.resolve(opts)
     delay_seconds = opts.delay_seconds or 5,
     name = opts.name or opts.repository,
     timeout_ms = math.floor(opts.timeout_ms or 8000),
+    notify = opts.notify ~= false,
   }
 end
 

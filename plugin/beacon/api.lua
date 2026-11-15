@@ -11,73 +11,96 @@ local wezterm = require "wezterm"
 ---@class Beacon
 local M = {}
 
-local cfg ---@type Beacon.Config|nil
+---@class Beacon.Watch
+---@field cfg Beacon.Config
+---@field scheduled boolean
+
+local watches = {} ---@type Beacon.Watch[]
 local registered = false
-local scheduled = false
 
 -- ── State ───────────────────────────────────────────────────────────────────
 
 -- wezterm.GLOBAL survives config reloads, so cooldown and dedup do too.
-local function state_key()
+---@param cfg Beacon.Config
+local function state_key(cfg)
   return ("__beacon:%s:%s"):format(cfg.repository, cfg.channel)
 end
 
-local function load_state()
-  return wezterm.GLOBAL[state_key()] or {}
+---@param cfg Beacon.Config
+local function load_state(cfg)
+  return wezterm.GLOBAL[state_key(cfg)] or {}
 end
 
-local function save_state(state)
-  wezterm.GLOBAL[state_key()] = state
+---@param cfg Beacon.Config
+local function save_state(cfg, state)
+  wezterm.GLOBAL[state_key(cfg)] = state
 end
 
 -- ── Checks ──────────────────────────────────────────────────────────────────
 
+---@param cfg Beacon.Config
 ---@param window table
 ---@param force boolean
 ---@return Beacon.Notice|nil
-local function run_check(window, force)
+local function run_check(cfg, window, force)
   local notice = channels[cfg.channel](cfg)
-  if not notice then
-    return nil
-  end
-  local state = load_state()
-  if force or state.notified ~= notice.key then
+  local state = load_state(cfg)
+  -- What `available()` reports: the latest check's notice, or nothing once
+  -- up to date.
+  state.available = notice
+      and {
+        key = notice.key,
+        title = notice.title,
+        message = notice.message,
+        url = notice.url,
+        version = notice.version,
+        name = cfg.name,
+      }
+    or nil
+  -- `notify = false` watches only feed `available()`; check_now still toasts.
+  if notice and (force or (cfg.notify and state.notified ~= notice.key)) then
     window:toast_notification(notice.title, notice.message, notice.url, cfg.timeout_ms)
     state.notified = notice.key
-    save_state(state)
   end
+  save_state(cfg, state)
   return notice
 end
 
-local function on_status(window)
-  if not cfg or scheduled or os.time() < (load_state().next_check or 0) then
+---@param watch Beacon.Watch
+---@param window table
+local function schedule(watch, window)
+  local cfg = watch.cfg
+  if watch.scheduled or os.time() < (load_state(cfg).next_check or 0) then
     return
   end
-  scheduled = true
+  watch.scheduled = true
   -- Only a live window event can schedule work; setup never does I/O.
   wezterm.time.call_after(cfg.delay_seconds, function()
-    scheduled = false
-    local state = load_state()
+    watch.scheduled = false
+    local state = load_state(cfg)
     if os.time() < (state.next_check or 0) then
       return
     end
     -- Set before checking so failures are throttled too.
     state.next_check = os.time() + cfg.interval_seconds
-    save_state(state)
-    local ok, err = pcall(run_check, window, false)
+    save_state(cfg, state)
+    local ok, err = pcall(run_check, cfg, window, false)
     if not ok then
       logger.warn(err)
     end
   end)
 end
 
--- ── Public API ──────────────────────────────────────────────────────────────
+local function on_status(window)
+  for _, watch in ipairs(watches) do
+    schedule(watch, window)
+  end
+end
 
----Configure beacon and start watching after the first window event.
----Invalid options or a missing warp.wz are logged and leave beacon disabled.
+---Resolve `opts` and add (or replace) the watch for its repository/channel.
 ---@param opts Beacon.Options
 ---@return boolean ok
-function M.setup(opts)
+local function add(opts)
   local ok, resolved = pcall(config.resolve, opts)
   if not ok then
     logger.error(resolved)
@@ -90,7 +113,14 @@ function M.setup(opts)
     return false
   end
   logger.resolve()
-  cfg = resolved
+  local key = state_key(resolved)
+  local slot = #watches + 1
+  for i, watch in ipairs(watches) do
+    if state_key(watch.cfg) == key then
+      slot = i
+    end
+  end
+  watches[slot] = { cfg = resolved, scheduled = watches[slot] and watches[slot].scheduled or false }
   if not registered then
     registered = true
     wezterm.on("update-status", on_status)
@@ -98,30 +128,72 @@ function M.setup(opts)
   return true
 end
 
----Check immediately, ignoring the cooldown and repeating already shown notices.
----Call it from an async context such as `wezterm.action_callback`.
+-- ── Public API ──────────────────────────────────────────────────────────────
+
+---Configure beacon and start watching after the first window event.
+---Replaces every watch with this one; add more with `beacon.watch`.
+---Invalid options or a missing warp.wz are logged and leave beacon disabled.
+---@param opts Beacon.Options
+---@return boolean ok
+function M.setup(opts)
+  watches = {}
+  return add(opts)
+end
+
+---Watch one more repository (same options as `setup`), e.g. each plugin
+---your config loads. Each watch keeps its own cooldown, dedup and notice.
+---@param opts Beacon.Options
+---@return boolean ok
+function M.watch(opts)
+  return add(opts)
+end
+
+---Check every watch immediately, ignoring the cooldown and repeating already
+---shown notices. Call it from an async context such as
+---`wezterm.action_callback`.
 ---@param window table
----@return Beacon.Notice|nil notice
+---@return Beacon.Notice|nil notice The first update found.
 function M.check_now(window)
-  if not cfg then
+  if #watches == 0 then
     logger.warn "check_now called before setup."
     return nil
   end
-  local ok, notice = pcall(run_check, window, true)
-  if not ok then
-    logger.warn(notice)
-    return nil
+  local first
+  for _, watch in ipairs(watches) do
+    local ok, notice = pcall(run_check, watch.cfg, window, true)
+    if not ok then
+      logger.warn(notice)
+    elseif notice and not first then
+      first = notice
+    end
   end
-  if not notice then
+  if not first then
+    local cfg = watches[1].cfg
     window:toast_notification(cfg.name, "Already up to date.", nil, cfg.timeout_ms)
   end
-  return notice
+  return first
 end
 
----Return the resolved configuration, or nil before setup.
+---Updates found by the latest checks, one per watch with an update, in watch
+---order; empty when everything is up to date, not yet checked, or before
+---setup. Reads `wezterm.GLOBAL` only, so it is cheap enough for
+---`update-status`.
+---@return Beacon.Notice[]
+function M.available()
+  local out = {}
+  for _, watch in ipairs(watches) do
+    local notice = load_state(watch.cfg).available
+    if notice then
+      out[#out + 1] = notice
+    end
+  end
+  return out
+end
+
+---Return the configuration of the first watch, or nil before setup.
 ---@return Beacon.Config|nil
 function M.config()
-  return cfg
+  return watches[1] and watches[1].cfg
 end
 
 return M

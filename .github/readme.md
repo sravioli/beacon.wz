@@ -125,6 +125,7 @@ beacon.setup {
 | `delay_seconds` | `number` | `5` | Non-negative delay after a qualifying status event. |
 | `name` | `string` | `repository` | Computed notification label; must be non-empty when supplied. |
 | `timeout_ms` | `integer` | `8000` | Non-negative toast display time in milliseconds; fractional input is floored. |
+| `notify` | `boolean` | `true` | `false` skips toasts and only records updates for `available()` (a status bar shows them). `check_now` still toasts. |
 | `validate` | `boolean` | `true` | Check options with [warden.wz](https://github.com/sravioli/warden.wz). Set `false` to skip checks and never load warden. |
 
 #### Option validation
@@ -170,10 +171,14 @@ you cannot configure a token. Unstable uses `git ls-remote`, not that API.
 | Signature → Return type | Description |
 | --- | --- |
 | `beacon.setup(options) → boolean` | Resolve settings and register automatic watching; log and return `false` on setup failure. |
-| `beacon.check_now(window) → Beacon.Notice?` | Force a check in an async context, repeating notices and reporting no-update results; errors log and return `nil`. |
+| `beacon.check_now(window) → Beacon.Notice?` | Force a check of every watch in an async context, repeating notices and reporting no-update results; returns the first update; errors log and return `nil`. |
+| `beacon.watch(options) → boolean` | Watch one more repository with the same options as `setup` (e.g. each plugin you load). Each watch has its own cooldown, dedup and notice; one per repository and channel. `setup` replaces all watches. |
+| `beacon.available() → Beacon.Notice[]` | Updates found by the latest checks, one per watch with an update, kept across reloads; empty when up to date, not yet checked, or before setup. Cheap enough for `update-status`. |
 | `beacon.config() → Beacon.Config?` | Return the live resolved configuration, or `nil` before successful setup. |
 
-A notice is `{ key, title, message, url }`, all strings. `nil` can indicate
+A notice is `{ key, title, message, url, version?, name? }`, all strings;
+`version` is the release tag (stable channel only), and `name` is the watch's
+name on notices from `available()`. `nil` can indicate
 no update, a skipped check, missing setup, or an error; consult logs rather
 than using it as a success flag. `config()` exposes `interval_seconds`,
 computed from hours, rather than retaining an `interval_hours` field.

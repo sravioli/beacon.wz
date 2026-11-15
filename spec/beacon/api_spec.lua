@@ -280,6 +280,25 @@ describe("beacon", function()
       end)
     end
 
+    it("reports the latest update through available()", function()
+      assert.same({}, beacon.available())
+      check()
+      local list = beacon.available()
+      assert.equals(1, #list)
+      assert.equals("6.4.0", list[1].version)
+      assert.equals(release.html_url, list[1].url)
+      assert.equals("release:6.4.0", list[1].key)
+      assert.equals("WezTerm config", list[1].name)
+    end)
+
+    it("clears available() once up to date", function()
+      check()
+      release.tag_name, installed_tag = "6.4.0", "6.4.0"
+      wezterm.GLOBAL[state_key()].next_check = 0
+      check()
+      assert.same({}, beacon.available())
+    end)
+
     it("does not repeat a notification for the same release", function()
       check()
       wezterm.GLOBAL[state_key()] = { notified = state().notified }
@@ -340,6 +359,95 @@ describe("beacon", function()
   end)
 
   -- ── Unstable channel ──────────────────────────────────────────────────────
+
+  describe("multiple watches", function()
+    local function watch(repository, name)
+      assert.is_true(beacon.watch { repository = repository, name = name })
+    end
+
+    -- Answer each repository with a release page inside that repository.
+    before_each(function()
+      wezterm._respond = function(args)
+        if args[1] == "curl" then
+          local repository = args[#args]:match "repos/(.-)/releases/latest"
+          release.html_url = ("https://github.com/%s/releases/tag/%s"):format(
+            repository,
+            release.tag_name
+          )
+        end
+        return respond(args)
+      end
+    end)
+
+    ---One status event, then every watch's timer.
+    local function check_all()
+      status()
+      while #wezterm._timers > 0 do
+        wezterm._fire()
+      end
+    end
+
+    it("checks every watched repository and lists each update", function()
+      watch("sravioli/chord.wz", "chord")
+      watch("sravioli/memo.wz", "memo")
+      check_all()
+      local curls = 0
+      for _, args in ipairs(wezterm._commands) do
+        if is_curl(args) then
+          curls = curls + 1
+        end
+      end
+      assert.equals(3, curls)
+      local names = {}
+      for _, notice in ipairs(beacon.available()) do
+        names[#names + 1] = notice.name
+      end
+      assert.same({ "WezTerm config", "chord", "memo" }, names)
+      assert.equals(3, #notices)
+    end)
+
+    it("keeps one watch per repository and channel", function()
+      watch("sravioli/chord.wz", "first")
+      watch("sravioli/chord.wz", "second")
+      check_all()
+      assert.equals(2, #beacon.available())
+      assert.equals("second", beacon.available()[2].name)
+    end)
+
+    it("setup replaces every watch", function()
+      watch("sravioli/chord.wz", "chord")
+      assert.is_true(beacon.setup(options))
+      check_all()
+      assert.equals(1, #beacon.available())
+    end)
+
+    it("keeps a failing watch from blocking the others", function()
+      watch("sravioli/chord.wz", "chord")
+      fail_command = "curl"
+      check_all()
+      assert.same({}, beacon.available())
+      fail_command = nil
+      for _, key in ipairs { state_key(), "__beacon:sravioli/chord.wz:stable" } do
+        wezterm.GLOBAL[key].next_check = 0
+      end
+      check_all()
+      assert.equals(2, #beacon.available())
+    end)
+
+    it("records updates without toasting when notify = false", function()
+      assert.is_true(beacon.watch { repository = "sravioli/chord.wz", notify = false })
+      check_all()
+      assert.equals(2, #beacon.available())
+      assert.equals(1, #notices)
+    end)
+
+    it("check_now checks every watch and returns the first update", function()
+      watch("sravioli/chord.wz", "chord")
+      local notice = beacon.check_now(window)
+      assert.equals("release:6.4.0", notice.key)
+      assert.equals(2, #notices)
+    end)
+  end)
 
   describe("unstable channel", function()
     before_each(function()

@@ -17,7 +17,9 @@ describe("beacon.config", function()
       delay_seconds = 5,
       name = "owner/repo",
       timeout_ms = 8000,
+      notify = true,
     }, config.resolve { repository = "owner/repo" })
+    assert.is_false(config.resolve({ repository = "owner/repo", notify = false }).notify)
   end)
 
   it("keeps explicit options", function()
