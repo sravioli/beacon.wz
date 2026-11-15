@@ -211,14 +211,14 @@ with WezTerm/plugin versions, channel, and sanitized command errors.
 
 ### Local checkout
 
-Clone into `plugins/beacon.wz` beneath `wezterm.config_dir`, then replace
-the remote import:
+Load the working tree directly, so edits take effect on the next config
+reload without a commit or a plugin update. Adjust the path to your clone:
 
 ```lua
 local wezterm = require "wezterm"
-local beacon = wezterm.plugin.require(
-  "file:///" .. wezterm.config_dir .. "/plugins/beacon.wz"
-)
+local root = wezterm.home_dir .. "/path/to/beacon.wz/plugin/"
+package.path = root .. "?.lua;" .. root .. "?/init.lua;" .. package.path
+local beacon = require "beacon.api"
 ```
 
 For offline dependency loading, put the sibling API modules on `package.path`.
