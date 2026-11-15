@@ -252,7 +252,7 @@ stylua --check plugin spec
 ```
 
 Specs mock processes, events, and timers without making network checks.
-See [AGENTS.md](../AGENTS.md) and the [contribution guide](contributing.md).
+See the [contribution guide](contributing.md).
 Use Conventional Commits and keep documentation changes separate from code.
 
 ## License
