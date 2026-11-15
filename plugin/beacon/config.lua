@@ -15,6 +15,7 @@ local wezterm = require "wezterm"
 ---@field delay_seconds? number Seconds to wait after the first window event. Default 5.
 ---@field name? string Label used in notification titles. Defaults to `repository`.
 ---@field timeout_ms? integer Notification display time. Default 8000.
+---@field validate? boolean Set to `false` to skip validation and never load warden. Default true.
 
 ---@class Beacon.Config: Beacon.Options
 ---@field dir string
@@ -26,50 +27,53 @@ local wezterm = require "wezterm"
 
 local M = {}
 
-local channels = { stable = true, unstable = true }
-
-local function positive_number(value, field, default)
-  if value == nil then
-    return default
-  end
-  if type(value) ~= "number" or value < 0 then
-    error(("`%s` must be a non-negative number."):format(field), 0)
-  end
-  return value
+---@return Warden.Schema
+local function text()
+  return require("beacon.deps").warden().string():not_empty():optional()
 end
 
-local function optional_string(value, field)
-  if value ~= nil and (type(value) ~= "string" or value == "") then
-    error(("`%s` must be a non-empty string."):format(field), 0)
-  end
-  return value
+---@return Warden.Schema
+local function schema()
+  local w = require("beacon.deps").warden()
+  return w.object({
+    repository = w.string():matches "^[%w%-%._]+/[%w%-%._]+$",
+    dir = text(),
+    channel = w.enum({ "stable", "unstable" }):optional(),
+    branch = text(),
+    interval_hours = w.number():min(0):optional(),
+    delay_seconds = w.number():min(0):optional(),
+    name = text(),
+    timeout_ms = w.number():min(0):optional(),
+    validate = w.boolean():optional(),
+  }):unknown "warn"
 end
 
----Validate options and fill in defaults. Pure: performs no I/O.
+---Validate options and fill in defaults. Raises on the first invalid option
+---and warns about unknown ones. Performs no I/O beyond logging.
 ---@param opts Beacon.Options
 ---@return Beacon.Config
 function M.resolve(opts)
   if type(opts) ~= "table" then
     error("Options must be a table.", 0)
   end
-  local repository = opts.repository
-  if type(repository) ~= "string" or not repository:match "^[%w%-%._]+/[%w%-%._]+$" then
-    error(('Invalid repository %q; use "owner/name".'):format(tostring(repository)), 0)
+  if opts.validate ~= false then
+    local result = schema():safe_parse(opts)
+    if not result.ok then
+      local issue = result.issues[1]
+      error(("Invalid option `%s`: %s"):format(issue.path_text, issue.message), 0)
+    end
+    result:log { warn = require("beacon.logger").warn }
   end
-  local channel = opts.channel or "stable"
-  if not channels[channel] then
-    error(('Unknown channel %q; use "stable" or "unstable".'):format(tostring(channel)), 0)
-  end
-  local hours = positive_number(opts.interval_hours, "interval_hours", 24)
+
   return {
-    repository = repository,
-    dir = optional_string(opts.dir, "dir") or wezterm.config_dir,
-    channel = channel,
-    branch = optional_string(opts.branch, "branch"),
-    interval_seconds = math.floor(math.max(hours, 1) * 3600),
-    delay_seconds = positive_number(opts.delay_seconds, "delay_seconds", 5),
-    name = optional_string(opts.name, "name") or repository,
-    timeout_ms = math.floor(positive_number(opts.timeout_ms, "timeout_ms", 8000)),
+    repository = opts.repository,
+    dir = opts.dir or wezterm.config_dir,
+    channel = opts.channel or "stable",
+    branch = opts.branch,
+    interval_seconds = math.floor(math.max(opts.interval_hours or 24, 1) * 3600),
+    delay_seconds = opts.delay_seconds or 5,
+    name = opts.name or opts.repository,
+    timeout_ms = math.floor(opts.timeout_ms or 8000),
   }
 end
 

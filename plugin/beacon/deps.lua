@@ -27,6 +27,10 @@ M.plugins = {
     module = "warp.api",
     url = "https://github.com/sravioli/warp.wz",
   },
+  warden = {
+    module = "warden.api",
+    url = "https://github.com/sravioli/warden.wz",
+  },
 }
 
 ---Load a dependency, returning nil and the error when it is unavailable.
@@ -71,6 +75,11 @@ end
 ---@return Warp.Api
 function M.warp()
   return require_dependency "warp"
+end
+
+---@return Warden
+function M.warden()
+  return require_dependency "warden"
 end
 
 return M
