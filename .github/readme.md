@@ -23,7 +23,8 @@ or newer** and Git. The stable channel also needs curl, a reachable local
 version tag, and a published GitHub release. Monitor a local checkout of
 the configured repository.
 
-Automatically loads [warp.wz](https://github.com/sravioli/warp.wz) and tries
+Automatically loads [warp.wz](https://github.com/sravioli/warp.wz),
+[warden.wz](https://github.com/sravioli/warden.wz) and tries
 optional [log.wz](https://github.com/sravioli/log.wz), with native logging
 as the fallback. Local API modules take precedence over remote plugins.
 
@@ -124,6 +125,18 @@ beacon.setup {
 | `delay_seconds` | `number` | `5` | Non-negative delay after a qualifying status event. |
 | `name` | `string` | `repository` | Computed notification label; must be non-empty when supplied. |
 | `timeout_ms` | `integer` | `8000` | Non-negative toast display time in milliseconds; fractional input is floored. |
+| `validate` | `boolean` | `true` | Check options with [warden.wz](https://github.com/sravioli/warden.wz). Set `false` to skip checks and never load warden. |
+
+#### Option validation
+
+Options are checked against a schema when you call setup. Invalid options make `setup` log an error and return `false`; unknown keys log a warning.
+Set `validate = false` once your configuration is stable: warden is then never
+downloaded or loaded, and the options are used exactly as written, so typos and
+wrong types go unnoticed.
+
+```lua
+beacon.setup { repository = "owner/repo", validate = false }
+```
 
 ### Behavior and precedence
 
@@ -134,7 +147,7 @@ Automatic checks need a visible window.
 
 Each successful setup replaces the previous resolved options rather than
 merging them, and registers at most one handler in that Lua context.
-Unknown fields are ignored. Invalid options or a missing Warp dependency log
+Unknown fields are logged as warnings and ignored. Invalid options or a missing dependency log
 an error and return `false`; before the first successful setup Beacon is
 inactive. A failed reconfiguration leaves an earlier successful config active.
 
@@ -209,7 +222,7 @@ local beacon = wezterm.plugin.require(
 ```
 
 For offline dependency loading, put the sibling API modules on `package.path`.
-The test mock supplies Warp without requiring sibling checkouts.
+The test mock supplies Warp, but specs load warden from a sibling `../warden.wz` checkout.
 
 ### Editor support
 
