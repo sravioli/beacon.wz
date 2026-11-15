@@ -100,7 +100,7 @@ describe("beacon", function()
       wezterm._reset()
       beacon = require "beacon.api"
       assert.is_false(beacon.setup { repository = "not a repo" })
-      assert.matches("Invalid repository", wezterm._logs.error[1], 1, true)
+      assert.matches("repository", wezterm._logs.error[1], 1, true)
       assert.is_nil(wezterm._handlers["update-status"])
     end)
 

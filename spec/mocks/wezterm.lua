@@ -1,5 +1,10 @@
 --- Hand-written WezTerm mock. Specs drive child processes through `wezterm._respond`.
 
+-- warden is a real sibling checkout, so specs exercise actual validation.
+-- selene: allow(incorrect_standard_library_use)
+local base = "../warden.wz/plugin/"
+package.path = base .. "?.lua;" .. base .. "?/init.lua;" .. package.path
+
 local M = {}
 
 -- Minimal warp.wz stand-in so specs run without sibling checkouts (CI).

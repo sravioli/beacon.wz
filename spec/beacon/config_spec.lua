@@ -45,12 +45,18 @@ describe("beacon.config", function()
     assert.equals(3600, cfg.interval_seconds)
   end)
 
+  it("warns about unknown options", function()
+    config.resolve { repository = "o/r", interval_hour = 2 }
+    assert.equals(1, #wezterm._logs.warn)
+    assert.matches("interval_hour", wezterm._logs.warn[1], 1, true)
+  end)
+
   for _, case in ipairs {
     { nil, "Options must be a table" },
-    { {}, "Invalid repository" },
-    { { repository = "not a repo" }, "Invalid repository" },
-    { { repository = "o/r/x" }, "Invalid repository" },
-    { { repository = "o/r", channel = "nightly" }, "Unknown channel" },
+    { {}, "repository" },
+    { { repository = "not a repo" }, "repository" },
+    { { repository = "o/r/x" }, "repository" },
+    { { repository = "o/r", channel = "nightly" }, "channel" },
     { { repository = "o/r", interval_hours = -1 }, "interval_hours" },
     { { repository = "o/r", delay_seconds = "5" }, "delay_seconds" },
     { { repository = "o/r", branch = "" }, "branch" },
@@ -62,4 +68,17 @@ describe("beacon.config", function()
       assert.matches(case[2], err, 1, true)
     end)
   end
+
+  it("skips validation and never loads warden when validate = false", function()
+    local deps = require "beacon.deps"
+    local real = deps.warden
+    finally(function()
+      deps.warden = real
+    end)
+    deps.warden = function()
+      error "warden loaded"
+    end
+    local cfg = config.resolve { repository = "not a repo", validate = false }
+    assert.equals("not a repo", cfg.repository)
+  end)
 end)
