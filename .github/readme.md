@@ -1,10 +1,11 @@
-# beacon.wz
+# beacon.wz [![Release](https://img.shields.io/github/v/release/sravioli/beacon.wz?style=flat&label=Release&logo=github)](https://github.com/sravioli/beacon.wz/releases/latest)
 
-[![Tests](https://img.shields.io/github/actions/workflow/status/sravioli/beacon.wz/tests.yaml?style=flat-square&label=tests)](https://github.com/sravioli/beacon.wz/actions/workflows/tests.yaml)
-[![Lint](https://img.shields.io/github/actions/workflow/status/sravioli/beacon.wz/lint.yaml?style=flat-square&label=lint)](https://github.com/sravioli/beacon.wz/actions/workflows/lint.yaml)
-[![Coverage](https://img.shields.io/coverallsCoverage/github/sravioli/beacon.wz?label=Coverage&logo=coveralls)](https://coveralls.io/github/sravioli/beacon.wz)
-[![Code license](https://img.shields.io/badge/code-GPL--2.0-blue?style=flat-square)](../LICENSE)
-[![Docs license](https://img.shields.io/badge/docs-CC_BY--NC_4.0-blue?style=flat-square)](../LICENSE-DOCS)
+<!-- [![Awesome](https://awesome.re/mentioned-badge.svg)](https://github.com/michaelbrusegard/awesome-wezterm) -->
+[![Tests](https://img.shields.io/github/actions/workflow/status/sravioli/beacon.wz/tests.yaml?style=flat&label=Tests&logo=githubactions)](https://github.com/sravioli/beacon.wz/actions/workflows/tests.yaml)
+[![Lint](https://img.shields.io/github/actions/workflow/status/sravioli/beacon.wz/lint.yaml?style=flat&label=Lint&logo=githubactions)](https://github.com/sravioli/beacon.wz/actions/workflows/lint.yaml)
+[![Coverage](https://img.shields.io/coverallsCoverage/github/sravioli/beacon.wz?style=flat&label=Coverage&logo=coveralls)](https://coveralls.io/github/sravioli/beacon.wz)
+[![Code license](https://img.shields.io/badge/Code-GPL--2.0-blue?style=flat&logo=gnu)](../LICENSE)
+[![Docs license](https://img.shields.io/badge/Docs-CC_BY--NC_4.0-blue?style=flat&logo=creativecommons)](../LICENSE-DOCS)
 
 Update notifications for Git-tracked [WezTerm](https://wezterm.org/) configurations.
 
@@ -187,6 +188,26 @@ Treat the returned config as read-only.
 See the [API annotations](../plugin/beacon/api.lua),
 [option definitions](../plugin/beacon/config.lua), and
 [notice definition](../plugin/beacon/channels.lua) for full types.
+
+## mosaic integration
+
+beacon ships `beacon.update` for the
+[mosaic.wz](https://github.com/sravioli/mosaic.wz) status bar. While
+`beacon.available()` reports updates it shows an icon and, for one update, its
+version, or, for several, how many repositories can be updated. It hides
+otherwise. mosaic reads the module only when a layout names it.
+
+```lua
+mosaic.setup {
+  layout = { right = { { "beacon.update", "cwd", "clock" } } },
+  options = {
+    ["beacon.update"] = {
+      icon = false,  -- optional: hide the glyph (default: oct_package)
+      label = "new", -- optional: a single update without a version (default: "update")
+    },
+  },
+}
+```
 
 ## Troubleshooting
 
