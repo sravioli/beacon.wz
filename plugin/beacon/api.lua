@@ -59,6 +59,9 @@ local function run_check(cfg, window, force)
         installed = channels.installed(cfg),
       }
     or nil
+  if notice then
+    logger.info(("%s can update to %s"):format(cfg.name, notice.version or "a newer commit"))
+  end
   -- `notify = false` watches only feed `available()`; check_now still toasts.
   if notice and (force or (cfg.notify and state.notified ~= notice.key)) then
     window:toast_notification(notice.title, notice.message, notice.url, cfg.timeout_ms)

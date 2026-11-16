@@ -40,25 +40,16 @@ describe("mosaic integration beacon.update", function()
     assert.is_false(descriptor.new({}, mosaic)().enabled)
   end)
 
-  it("shows the version of a single update", function()
+  it("shows how many repositories have updates", function()
     updates = { { key = "release:6.4.0", version = "6.4.0" } }
     local spec = descriptor.new({}, mosaic)()
     assert.is_true(spec.enabled)
     assert.is_true(spec.can_hide)
-    assert.equals("6.4.0", spec.text.value)
+    assert.equals("1", spec.text.value)
     assert.equals(4, spec.accent)
     assert.is_nil(spec.style) -- content only: the preset decorates it
-  end)
-
-  it("shows how many repositories have updates", function()
     updates = { { version = "1.2.0" }, { version = "0.2.0" }, { key = "commit:abc" } }
     assert.equals("3", descriptor.new({}, mosaic)().text.value)
-  end)
-
-  it("falls back to text for a single notice without a version", function()
-    updates = { { key = "commit:abc" } }
-    assert.equals("update", descriptor.new({}, mosaic)().text.value)
-    assert.equals("new", descriptor.new({ label = "new" }, mosaic)().text.value)
   end)
 
   it("hides the icon with icon = false", function()

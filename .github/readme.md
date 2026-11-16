@@ -193,9 +193,8 @@ See the [API annotations](../plugin/beacon/api.lua),
 
 beacon ships `beacon.update` for the
 [mosaic.wz](https://github.com/sravioli/mosaic.wz) status bar. While
-`beacon.available()` reports updates it shows an icon and, for one update, its
-version, or, for several, how many repositories can be updated. It hides
-otherwise. mosaic reads the module only when a layout names it.
+`beacon.available()` reports updates it shows an icon and how many
+repositories can be updated; each check logs which ones. It hides otherwise. mosaic reads the module only when a layout names it.
 
 ```lua
 mosaic.setup {
@@ -203,7 +202,6 @@ mosaic.setup {
   options = {
     ["beacon.update"] = {
       icon = false,  -- optional: hide the glyph (default: oct_package)
-      label = "new", -- optional: a single update without a version (default: "update")
     },
   },
 }

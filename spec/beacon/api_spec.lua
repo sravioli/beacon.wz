@@ -304,6 +304,11 @@ describe("beacon", function()
       assert.equals("WezTerm config", list[1].name)
     end)
 
+    it("logs the plugin that can be updated", function()
+      check()
+      assert.matches("WezTerm config can update to 6.4.0", wezterm._logs.info[1], 1, true)
+    end)
+
     it("clears available() once up to date", function()
       check()
       release.tag_name, installed_tag = "6.4.0", "6.4.0"
