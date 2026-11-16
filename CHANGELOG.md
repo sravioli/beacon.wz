@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [1.2.0](https://github.com/sravioli/beacon.wz/compare/8588b85ebd117432907779c42b047ad097c262ce..1.2.0) - 2026-11-16
+#### Features
+- (**mosaic**) show the number of updates and log which plugins can update - ([8588b85](https://github.com/sravioli/beacon.wz/commit/8588b85ebd117432907779c42b047ad097c262ce)) - sravioli
+#### Bug Fixes
+- (**api**) drop recorded updates after update_all without a reload - ([d054f21](https://github.com/sravioli/beacon.wz/commit/d054f211c077689afce85cd2a5cc18cb3037858b)) - sravioli
+- (**api**) log recorded updates again after a config reload - ([69d4474](https://github.com/sravioli/beacon.wz/commit/69d4474a6433094ee5677fa2347bf582a780288b)) - sravioli
+
+- - -
+
 ## [1.1.0](https://github.com/sravioli/beacon.wz/compare/e5881171f009a228055d14ec1f4a1bfc7e82c472..1.1.0) - 2026-11-16
 #### Features
 - (**mosaic**) add the beacon.update status bar module - ([e588117](https://github.com/sravioli/beacon.wz/commit/e5881171f009a228055d14ec1f4a1bfc7e82c472)) - sravioli
