@@ -14,7 +14,11 @@ local M = {}
 ---@class Beacon.Watch
 ---@field cfg Beacon.Config
 ---@field scheduled boolean
----@field verified? boolean The recorded update was checked against the checkout this load.
+---@field verified_at? integer When the recorded update was last checked against the checkout.
+
+-- How often a recorded update is re-checked against the checkout, so a
+-- `wezterm.plugin.update_all()` without a reload still clears it.
+local VERIFY_SECONDS = 60
 
 local watches = {} ---@type Beacon.Watch[]
 local registered = false
@@ -79,10 +83,19 @@ end
 
 ---Drop a recorded update once the checkout no longer has the version it was
 ---found against (e.g. after `wezterm.plugin.update_all()`), and check again.
----Local git only; runs once per config load.
+---Local git only; runs on a config load and then every minute while an update is recorded.
+---@param watch Beacon.Watch
+---@param state table
+---@return boolean
+local function needs_verify(watch, state)
+  return state.available ~= nil
+    and os.time() - (watch.verified_at or -VERIFY_SECONDS) >= VERIFY_SECONDS
+end
+
 ---@param watch Beacon.Watch
 local function verify(watch)
-  watch.verified = true
+  local first = not watch.verified_at
+  watch.verified_at = os.time()
   local cfg = watch.cfg
   local state = load_state(cfg)
   if not state.available then
@@ -92,7 +105,7 @@ local function verify(watch)
   if ok and installed ~= state.available.installed then
     state.available, state.next_check = nil, 0
     save_state(cfg, state)
-  else
+  elseif first then
     -- A reload keeps the recorded update but not the log line.
     log_update(cfg.name, state.available)
   end
@@ -103,15 +116,16 @@ end
 local function schedule(watch, window)
   local cfg = watch.cfg
   local state = load_state(cfg)
-  local stale = not watch.verified and state.available ~= nil
-  if watch.scheduled or (not stale and os.time() < (state.next_check or 0)) then
+  if
+    watch.scheduled or (not needs_verify(watch, state) and os.time() < (state.next_check or 0))
+  then
     return
   end
   watch.scheduled = true
   -- Only a live window event can schedule work; setup never does I/O.
   wezterm.time.call_after(cfg.delay_seconds, function()
     watch.scheduled = false
-    if not watch.verified then
+    if needs_verify(watch, load_state(cfg)) then
       verify(watch)
     end
     state = load_state(cfg)

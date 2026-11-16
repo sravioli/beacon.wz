@@ -326,6 +326,20 @@ describe("beacon", function()
       assert.same({}, beacon.available())
     end)
 
+    it("drops a recorded update after an update without a reload", function()
+      check()
+      assert.equals(1, #beacon.available())
+      installed_tag, release.tag_name = "6.4.0", "6.4.0"
+      local now = os.time
+      os.time = function()
+        return now() + 120
+      end ---@diagnostic disable-line: duplicate-set-field
+      local ok = pcall(check)
+      os.time = now
+      assert.is_true(ok)
+      assert.same({}, beacon.available())
+    end)
+
     it("keeps a recorded update across reloads while still installed", function()
       check()
       reload()
