@@ -39,6 +39,12 @@ end
 
 -- ── Checks ──────────────────────────────────────────────────────────────────
 
+---@param name string
+---@param notice {version?: string}
+local function log_update(name, notice)
+  logger.info(("%s can update to %s"):format(name, notice.version or "a newer commit"))
+end
+
 ---@param cfg Beacon.Config
 ---@param window table
 ---@param force boolean
@@ -60,7 +66,7 @@ local function run_check(cfg, window, force)
       }
     or nil
   if notice then
-    logger.info(("%s can update to %s"):format(cfg.name, notice.version or "a newer commit"))
+    log_update(cfg.name, notice)
   end
   -- `notify = false` watches only feed `available()`; check_now still toasts.
   if notice and (force or (cfg.notify and state.notified ~= notice.key)) then
@@ -86,6 +92,9 @@ local function verify(watch)
   if ok and installed ~= state.available.installed then
     state.available, state.next_check = nil, 0
     save_state(cfg, state)
+  else
+    -- A reload keeps the recorded update but not the log line.
+    log_update(cfg.name, state.available)
   end
 end
 

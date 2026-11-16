@@ -331,6 +331,7 @@ describe("beacon", function()
       reload()
       check()
       assert.equals(1, #beacon.available())
+      assert.equals(1, #wezterm._logs.info) -- logged again after the reload
       -- only the local describe ran: no network request during the cooldown
       assert.is_nil(find_command(is_curl))
     end)
