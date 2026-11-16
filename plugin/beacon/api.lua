@@ -156,7 +156,7 @@ end
 -- ── Public API ──────────────────────────────────────────────────────────────
 
 ---Configure beacon and start watching after the first window event.
----Replaces every watch with this one; add more with `beacon.watch`.
+---Replaces every watch with this one. Add more with `beacon.watch`.
 ---Invalid options or a missing warp.wz are logged and leave beacon disabled.
 ---@param opts Beacon.Options
 ---@return boolean ok
@@ -200,7 +200,7 @@ function M.check_now(window)
 end
 
 ---Updates found by the latest checks, one per watch with an update, in watch
----order; empty when everything is up to date, not yet checked, or before
+---order. Empty when everything is up to date, not yet checked, or before
 ---setup. Reads `wezterm.GLOBAL` only, so it is cheap enough for
 ---`update-status`.
 ---@return Beacon.Notice[]

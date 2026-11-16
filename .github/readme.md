@@ -1,6 +1,7 @@
 # beacon.wz [![Release](https://img.shields.io/github/v/release/sravioli/beacon.wz?style=flat&label=Release&logo=github)](https://github.com/sravioli/beacon.wz/releases/latest)
 
 <!-- [![Awesome](https://awesome.re/mentioned-badge.svg)](https://github.com/michaelbrusegard/awesome-wezterm) -->
+
 [![Tests](https://img.shields.io/github/actions/workflow/status/sravioli/beacon.wz/tests.yaml?style=flat&label=Tests&logo=githubactions)](https://github.com/sravioli/beacon.wz/actions/workflows/tests.yaml)
 [![Lint](https://img.shields.io/github/actions/workflow/status/sravioli/beacon.wz/lint.yaml?style=flat&label=Lint&logo=githubactions)](https://github.com/sravioli/beacon.wz/actions/workflows/lint.yaml)
 [![Coverage](https://img.shields.io/coverallsCoverage/github/sravioli/beacon.wz?style=flat&label=Coverage&logo=coveralls)](https://coveralls.io/github/sravioli/beacon.wz)
@@ -45,9 +46,9 @@ return config
 ```
 
 Replace `repository` with your config's actual `owner/name` if different.
-In an existing config, keep its builder and return; add the import and setup.
+In an existing config, keep its builder and return. Add the import and setup.
 Open a GUI window and wait for the first status event plus five seconds.
-A newer release produces a toast; an up-to-date checkout remains quiet.
+A newer release produces a toast. An up-to-date checkout stays quiet.
 Clicking a toast opens the release page. Check **Ctrl+Shift+L** for failures.
 
 ## Usage
@@ -116,25 +117,25 @@ beacon.setup {
 
 ### Options
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `repository` | `string` | Required | GitHub `owner/name`; only letters/digits, `_`, `-`, and `.` are accepted in each part. |
-| `dir` | `string` | `wezterm.config_dir` | Local Git checkout; non-empty when supplied. |
-| `channel` | `"stable"\|"unstable"` | `"stable"` | Latest published release or remote branch tip. |
-| `branch` | `string?` | `nil` | Unstable only; omitted means resolve the checked-out branch at check time. |
-| `interval_hours` | `number` | `24` | Hours between automatic attempts; non-negative values below 1 are clamped to 1 hour. |
-| `delay_seconds` | `number` | `5` | Non-negative delay after a qualifying status event. |
-| `name` | `string` | `repository` | Computed notification label; must be non-empty when supplied. |
-| `timeout_ms` | `integer` | `8000` | Non-negative toast display time in milliseconds; fractional input is floored. |
-| `notify` | `boolean` | `true` | `false` skips toasts and only records updates for `available()` (a status bar shows them). `check_now` still toasts. |
-| `validate` | `boolean` | `true` | Check options with [warden.wz](https://github.com/sravioli/warden.wz). Set `false` to skip checks and never load warden. |
+| Option           | Type                   | Default              | Description                                                                                                              |
+| ---------------- | ---------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `repository`     | `string`               | Required             | GitHub `owner/name`. Each part accepts only letters, digits, `_`, `-`, and `.`.                                          |
+| `dir`            | `string`               | `wezterm.config_dir` | Local Git checkout. Must be non-empty when supplied.                                                                     |
+| `channel`        | `"stable"\|"unstable"` | `"stable"`           | Latest published release or remote branch tip.                                                                           |
+| `branch`         | `string?`              | `nil`                | Unstable only. If omitted, Beacon resolves the checked-out branch at check time.                                         |
+| `interval_hours` | `number`               | `24`                 | Hours between automatic attempts. Non-negative values below 1 become 1 hour.                                             |
+| `delay_seconds`  | `number`               | `5`                  | Non-negative delay after a qualifying status event.                                                                      |
+| `name`           | `string`               | `repository`         | Computed notification label. Must be non-empty when supplied.                                                            |
+| `timeout_ms`     | `integer`              | `8000`               | How long the toast stays visible, in milliseconds. Must be non-negative. Beacon rounds fractions down.                   |
+| `notify`         | `boolean`              | `true`               | `false` skips toasts and only records updates for `available()`, for a status bar to show. `check_now` still toasts.     |
+| `validate`       | `boolean`              | `true`               | Check options with [warden.wz](https://github.com/sravioli/warden.wz). Set `false` to skip checks and never load warden. |
 
 #### Option validation
 
-Options are checked against a schema when you call setup. Invalid options make `setup` log an error and return `false`; unknown keys log a warning.
-Set `validate = false` once your configuration is stable: warden is then never
-downloaded or loaded, and the options are used exactly as written, so typos and
-wrong types go unnoticed.
+Options are checked against a schema when you call setup. Invalid options make `setup` log an error and return `false`. Unknown keys log a warning.
+Set `validate = false` once your configuration is stable. Beacon then never
+downloads or loads warden, and uses the options exactly as written. Typos and
+wrong types then go unnoticed.
 
 ```lua
 beacon.setup { repository = "owner/repo", validate = false }
@@ -142,7 +143,7 @@ beacon.setup { repository = "owner/repo", validate = false }
 
 ### Behavior and precedence
 
-Setup validates options and resolves dependencies, but starts no update-check
+Setup checks options and resolves dependencies, but starts no update-check
 processes or timers. Dependency installation may itself download plugins.
 The first eligible live `update-status` event schedules the delayed check.
 Automatic checks need a visible window.
@@ -150,7 +151,7 @@ Automatic checks need a visible window.
 Each successful setup replaces the previous resolved options rather than
 merging them, and registers at most one handler in that Lua context.
 Unknown fields are logged as warnings and ignored. Invalid options or a missing dependency log
-an error and return `false`; before the first successful setup Beacon is
+an error and return `false`. Before the first successful setup, Beacon is
 inactive. A failed reconfiguration leaves an earlier successful config active.
 
 Automatic checks record the next eligible time before attempting work, so
@@ -162,26 +163,25 @@ Manual checks do not reschedule the automatic cooldown.
 
 Stable compares three numeric version components from tags, accepting a
 leading `v`. It does not implement full SemVer prerelease ordering.
-Stable uses unauthenticated GitHub API requests and shares their rate limit;
-you cannot configure a token. Unstable uses `git ls-remote`, not that API.
+Stable uses unauthenticated GitHub API requests and shares their rate limit.
+You cannot configure a token. Unstable uses `git ls-remote`, not that API.
 
 ## API reference
 
+The [API reference](../docs/api.md) lists every function, method, and value
+with its parameters and return values. It is generated from the LuaLS
+annotations in `plugin/`, so it matches the code. It has these sections:
+
+- [beacon](../docs/api.md#beacon)
+- [Types](../docs/api.md#types)
+
 `?` marks a nullable result. All module calls use `.`, not `:`.
 
-| Signature → Return type | Description |
-| --- | --- |
-| `beacon.setup(options) → boolean` | Resolve settings and register automatic watching; log and return `false` on setup failure. |
-| `beacon.check_now(window) → Beacon.Notice?` | Force a check of every watch in an async context, repeating notices and reporting no-update results; returns the first update; errors log and return `nil`. |
-| `beacon.watch(options) → boolean` | Watch one more repository with the same options as `setup` (e.g. each plugin you load). Each watch has its own cooldown, dedup and notice; one per repository and channel. `setup` replaces all watches. |
-| `beacon.available() → Beacon.Notice[]` | Updates found by the latest checks, one per watch with an update, kept across reloads; empty when up to date, not yet checked, or before setup. Cheap enough for `update-status`. |
-| `beacon.config() → Beacon.Config?` | Return the live resolved configuration, or `nil` before successful setup. |
-
-A notice is `{ key, title, message, url, version?, name? }`, all strings;
+A notice is `{ key, title, message, url, version?, name? }`, all strings.
 `version` is the release tag (stable channel only), and `name` is the watch's
 name on notices from `available()`. `nil` can indicate
-no update, a skipped check, missing setup, or an error; consult logs rather
-than using it as a success flag. `config()` exposes `interval_seconds`,
+no update, a skipped check, missing setup, or an error. Read the logs instead
+of using it as a success flag. `config()` exposes `interval_seconds`,
 computed from hours, rather than retaining an `interval_hours` field.
 Treat the returned config as read-only.
 
@@ -220,14 +220,14 @@ notification settings. Use a manual check from a callback to diagnose it.
 ### Stable cannot find a version
 
 The nearest reachable local tag must start with three numeric components
-such as `1.2.3` or `v1.2.3`; the remote needs a published release.
+such as `1.2.3` or `v1.2.3`. The remote needs a published release.
 A tag alone is not a GitHub release. Choose unstable for branch-only projects.
 
 ### Git or curl cannot be found
 
-Warp searches `PATH` and common GUI-launcher install locations. Confirm the
+Warp searches `PATH` and common GUI-launcher install locations. Check that the
 program is installed and visible to the WezTerm process. Checks log process,
-network, JSON, and unexpected release-response failures without altering files.
+network, JSON, and unexpected release-response failures without changing files.
 
 Update plugins with `wezterm.plugin.update_all()` from the debug overlay,
 then reload. Report problems in [issues](https://github.com/sravioli/beacon.wz/issues)
@@ -263,7 +263,7 @@ to use the source annotations:
 local beacon = wezterm.plugin.require "https://github.com/sravioli/beacon.wz"
 ```
 
-This annotation requires those local definitions; installing wezterm-types
+This annotation requires those local definitions. Installing wezterm-types
 alone does not supply them.
 
 ### Checks and contributions

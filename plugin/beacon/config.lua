@@ -14,7 +14,7 @@ local wezterm = require "wezterm"
 ---@field interval_hours? number Hours between checks. Minimum 1, default 24.
 ---@field delay_seconds? number Seconds to wait after the first window event. Default 5.
 ---@field name? string Label used in notification titles. Defaults to `repository`.
----@field timeout_ms? integer Notification display time. Default 8000.
+---@field timeout_ms? integer How long the notification stays visible, in milliseconds. Default 8000.
 ---@field notify? boolean Set to `false` to skip toasts and only record updates for `available()`. Default true.
 ---@field validate? boolean Set to `false` to skip validation and never load warden. Default true.
 

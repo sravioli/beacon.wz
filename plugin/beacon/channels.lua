@@ -7,7 +7,7 @@ local logger = require "beacon.logger"
 local wezterm = require "wezterm"
 
 ---@class Beacon.Notice
----@field key string Deduplication key; the same key is never notified twice in a row.
+---@field key string Deduplication key. The same key is never notified twice in a row.
 ---@field title string
 ---@field message string
 ---@field url string
