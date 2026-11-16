@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [1.1.0](https://github.com/sravioli/beacon.wz/compare/e5881171f009a228055d14ec1f4a1bfc7e82c472..1.1.0) - 2026-11-16
+#### Features
+- (**mosaic**) add the beacon.update status bar module - ([e588117](https://github.com/sravioli/beacon.wz/commit/e5881171f009a228055d14ec1f4a1bfc7e82c472)) - sravioli
+
+- - -
+
 ## [1.0.0](https://github.com/sravioli/beacon.wz/compare/f1c706d201e21918cacbf84427ec8baca819be35..1.0.0) - 2026-11-16
 #### Features
 - (**api**) watch multiple repositories - ([e0cf07b](https://github.com/sravioli/beacon.wz/commit/e0cf07b2376486abcec1d659272103417ebc72d9)) - sravioli
