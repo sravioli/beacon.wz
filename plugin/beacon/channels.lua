@@ -32,7 +32,7 @@ local function run(args)
   if not success then
     error(("%s failed: %s"):format(args[1], stderr), 0)
   end
-  return stdout:match "^%s*(.-)%s*$"
+  return deps.warp().string.trim(stdout)
 end
 
 local function git(cfg, ...)

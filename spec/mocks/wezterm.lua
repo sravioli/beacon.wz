@@ -9,6 +9,11 @@ local M = {}
 
 -- Minimal warp.wz stand-in so specs run without sibling checkouts (CI).
 local warp = {
+  string = {
+    trim = function(s)
+      return (s:gsub("^%s*(.-)%s*$", "%1"))
+    end,
+  },
   process = {
     run = function(argv)
       local ok, success, stdout, stderr = pcall(M.run_child_process, argv)
