@@ -31,6 +31,11 @@ M.plugins = {
     module = "warden.api",
     url = "https://github.com/sravioli/warden.wz",
   },
+  -- Optional: glyphs for the mosaic integration.
+  sigil = {
+    module = "sigil.api",
+    url = "https://github.com/sravioli/sigil.wz",
+  },
 }
 
 ---Load a dependency, returning nil and the error when it is unavailable.
