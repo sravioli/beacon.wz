@@ -7,17 +7,25 @@
 ---logs which ones. mosaic reads this file only when a layout names it.
 ---
 ---Options (`options["beacon.update"]`):
----  icon? string|false  glyph before the text (default: oct_package, as lazy.nvim); false hides it
+---  icon? string|false  glyph before the text (default: sigil's `Status.update`, oct_package as
+---                       in lazy.nvim); false hides it
 
 return {
   api = 1,
   new = function(opts)
-    local wezterm = require "wezterm"
     local beacon = require "beacon.api"
 
     local icon = opts.icon
     if icon == nil then
-      icon = (wezterm.nerdfonts or {}).oct_package or ""
+      local sigil = require("beacon.deps").optional "sigil"
+      local ok, glyph = pcall(function()
+        return sigil and sigil.symbol "Status.update"
+      end)
+      if ok and type(glyph) == "string" then
+        icon = glyph
+      else
+        icon = (require("wezterm").nerdfonts or {}).oct_package or ""
+      end
     end
 
     return function()
