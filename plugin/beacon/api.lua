@@ -209,10 +209,11 @@ function M.check_now(window)
     logger.warn "check_now called before setup."
     return nil
   end
-  local first
+  local first, failed = nil, 0
   for _, watch in ipairs(watches) do
     local ok, notice = pcall(run_check, watch.cfg, window, true)
     if not ok then
+      failed = failed + 1
       logger.warn(notice)
     elseif notice and not first then
       first = notice
@@ -220,7 +221,11 @@ function M.check_now(window)
   end
   if not first then
     local cfg = watches[1].cfg
-    window:toast_notification(cfg.name, "Already up to date.", nil, cfg.timeout_ms)
+    -- A failed check proves nothing: do not report it as up to date.
+    local message = failed == 0 and "Already up to date."
+      or failed == #watches and "Update check failed (see the debug log)."
+      or "No update found, but some checks failed (see the debug log)."
+    window:toast_notification(cfg.name, message, nil, cfg.timeout_ms)
   end
   return first
 end

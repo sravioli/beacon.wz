@@ -594,6 +594,8 @@ describe("beacon", function()
       fail_command = "git"
       assert.is_nil(beacon.check_now(window))
       assert.matches("test failure", wezterm._logs.warn[1], 1, true)
+      -- A failed check is not "up to date".
+      assert.equals("Update check failed (see the debug log).", notices[1][2])
     end)
 
     it("warns when called before setup", function()
