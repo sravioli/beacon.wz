@@ -34,13 +34,11 @@ local function bootstrap(refresh)
         base .. "?.lua",
         base .. "?" .. sep .. "init.lua",
       }
-
       for _, entry in ipairs(entries) do
         if not package.path:find(entry, 1, true) then
           package.path = package.path .. ";" .. entry
         end
       end
-
       return p
     end
   end
