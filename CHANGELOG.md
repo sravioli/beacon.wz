@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [1.2.1](https://github.com/sravioli/beacon.wz/compare/ff2056ede536898ef82c77f804bd7ed13e0f08ee..1.2.1) - 2026-11-22
+#### Bug Fixes
+- (**api**) report failed checks instead of 'Already up to date' - ([c8bc988](https://github.com/sravioli/beacon.wz/commit/c8bc988c771ab8b766df8485c2cb04a7fa461637)) - sravioli
+#### Documentation
+- add minit.lua for reproducing bugs - ([cb11ed7](https://github.com/sravioli/beacon.wz/commit/cb11ed7a479f6c2d7f6c0922b72e4bfb670c8e4e)) - sravioli
+#### Continuous Integration
+- pass the release tag to the shell through env - ([c6fb5c6](https://github.com/sravioli/beacon.wz/commit/c6fb5c6ed6996070eab99bfbb8e054d1cf7919cd)) - sravioli
+- release from the pushed tag - ([6ecaa6d](https://github.com/sravioli/beacon.wz/commit/6ecaa6dbf68882d7f393d9887c188fbdb2490165)) - sravioli
+- count only the plugin's own files in coverage - ([7ad4cd3](https://github.com/sravioli/beacon.wz/commit/7ad4cd3ac35493c947f0fc74bcda55ceed488104)) - sravioli
+- adapt workflows to cocogitto-action v4 - ([2b3ae54](https://github.com/sravioli/beacon.wz/commit/2b3ae544019d190bdc48e0fbf49a7370897a67ba)) - sravioli
+- bump cocogitto/cocogitto-action - ([ff2056e](https://github.com/sravioli/beacon.wz/commit/ff2056ede536898ef82c77f804bd7ed13e0f08ee)) - dependabot[bot]
+#### Refactoring
+- (**channels**) trim command output with warp.string.trim - ([4b48e3b](https://github.com/sravioli/beacon.wz/commit/4b48e3b011be162b05c33fd832e7b0d45b3d749c)) - sravioli
+- load log and ribbon from warp - ([c5dbf93](https://github.com/sravioli/beacon.wz/commit/c5dbf93d55feddd98d94cb3b2b0fced07cff8951)) - sravioli
+- take the update badge glyph from sigil - ([4aa03dd](https://github.com/sravioli/beacon.wz/commit/4aa03ddc0cbdd87c7928a72aa26b19820d6d1546)) - sravioli
+
+- - -
+
 ## [1.2.0](https://github.com/sravioli/beacon.wz/compare/8588b85ebd117432907779c42b047ad097c262ce..1.2.0) - 2026-11-16
 #### Features
 - (**mosaic**) show the number of updates and log which plugins can update - ([8588b85](https://github.com/sravioli/beacon.wz/commit/8588b85ebd117432907779c42b047ad097c262ce)) - sravioli
