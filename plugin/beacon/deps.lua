@@ -19,10 +19,6 @@ local M = {
 
 ---@type table<string, Beacon.Dependency>
 M.plugins = {
-  log = {
-    module = "log.api",
-    url = "https://github.com/sravioli/log.wz",
-  },
   warp = {
     module = "warp.api",
     url = "https://github.com/sravioli/warp.wz",

@@ -121,9 +121,10 @@ describe("beacon", function()
       assert.is_nil(wezterm._handlers["update-status"])
     end)
 
-    it("logs through log.wz when it is available", function()
+    it("logs through warp.log when it is available", function()
       local entries = {}
-      package.loaded["log.api"] = {
+      wezterm._reset()
+      local log = {
         new = function(tag)
           return {
             warn = function(_, fmt, message)
@@ -132,10 +133,9 @@ describe("beacon", function()
           }
         end,
       }
-      wezterm._reset()
+      wezterm._warp = setmetatable({ log = log }, { __index = wezterm._warp })
       beacon = require "beacon.api"
       assert.is_true(beacon.setup(options))
-      package.loaded["log.api"] = nil
       wezterm._respond = respond
       fail_command = "curl"
       check()

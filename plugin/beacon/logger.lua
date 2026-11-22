@@ -2,8 +2,8 @@
 ---@author sravioli
 ---@license GNU-GPLv2
 
----Logs through log.wz when it is available, otherwise through `wezterm.log_*`.
----log.wz's global configuration is left alone.
+---Logs through warp.log when it is available, otherwise through `wezterm.log_*`.
+---warp.log's global configuration is left alone.
 
 local deps = require "beacon.deps"
 local wezterm = require "wezterm"
@@ -15,11 +15,12 @@ local M = {}
 
 local external ---@type table|false|nil
 
----Resolve log.wz once; `setup` calls this so checks never load plugins.
+---Resolve warp.log once; `setup` calls this so checks never load plugins.
 ---@return table|false
 function M.resolve()
   if external == nil then
-    local log = deps.optional "log"
+    local warp = deps.optional "warp"
+    local log = warp and warp.log
     local ok, logger = false, nil
     if log and type(log.new) == "function" then
       ok, logger = pcall(log.new, TAG)
